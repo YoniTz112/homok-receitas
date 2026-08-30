@@ -11,8 +11,12 @@ from pydantic import BaseModel, Field
 from google import genai
 from google.genai import types
 
-API_KEY = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=API_KEY)
+# 1. Caminho gravável compatível com Vercel Serverless
+DB_PATH = "/tmp/pantry.db"
+
+# 2. Inicialização segura do cliente Gemini
+API_KEY = os.environ.get("GEMINI_API_KEY", "")
+client = genai.Client(api_key=API_KEY) if API_KEY else None
 
 MODELS_TO_TRY = ["gemini-3.6-flash", "gemini-3.1-pro-preview"]
 
@@ -82,6 +86,14 @@ class CulinaryPlanResponse(BaseModel):
 
 # --- RUNNER COM RETRY ---
 def run_ai_structured(contents, schema, prompt):
+    global client
+    if not client:
+        # Tenta carregar caso a variável tenha entrado no ambiente da request
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="GEMINI_API_KEY não configurada nas variáveis de ambiente da Vercel.")
+        client = genai.Client(api_key=api_key)
+        
     last_err = None
     for model_name in MODELS_TO_TRY:
         for attempt in range(3):
