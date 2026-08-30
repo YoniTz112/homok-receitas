@@ -4,7 +4,7 @@ import time
 import traceback
 from datetime import datetime, timedelta
 from typing import List, Optional
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from google import genai
@@ -31,6 +31,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Middleware para normalizar prefixos de rotas enviados pela Vercel
+@app.middleware("http")
+async def normalize_vercel_routes(request: Request, call_next):
+    path = request.scope.get("path", "")
+    for prefix in ["/api/index.py", "/api/index", "/api"]:
+        if path.startswith(prefix) and len(path) > len(prefix):
+            request.scope["path"] = path[len(prefix):]
+            break
+    response = await call_next(request)
+    return response
 
 def init_db():
     try:
@@ -117,10 +128,9 @@ def run_ai_structured(contents, schema, prompt):
                     break
     raise last_err
 
-# --- ROTAS COM DUPLO MAPEAMENTO (GARANTE 100% DE COMPATIBILIDADE VERCEL) ---
+# --- ENDPOINTS ---
 
 @app.post("/scan")
-@app.post("/api/scan")
 async def scan_inventory(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
@@ -154,7 +164,6 @@ class ManualItemInput(BaseModel):
     estimated_value: Optional[float] = 12.0
 
 @app.post("/inventory/manual")
-@app.post("/api/inventory/manual")
 def add_manual_item(item: ManualItemInput):
     init_db()
     now = datetime.now()
@@ -172,7 +181,6 @@ class BatchAddRequest(BaseModel):
     items: List[DetectedItem]
 
 @app.post("/inventory/batch-add")
-@app.post("/api/inventory/batch-add")
 def batch_add_items(req: BatchAddRequest):
     init_db()
     now = datetime.now()
@@ -188,7 +196,6 @@ def batch_add_items(req: BatchAddRequest):
     return {"status": "ok"}
 
 @app.get("/inventory")
-@app.get("/api/inventory")
 def get_inventory():
     init_db()
     now = datetime.now()
@@ -236,7 +243,6 @@ def get_inventory():
     }
 
 @app.delete("/inventory/{item_id}")
-@app.delete("/api/inventory/{item_id}")
 def mark_as_consumed(item_id: int):
     init_db()
     with sqlite3.connect(DB_PATH) as conn:
@@ -249,7 +255,6 @@ class RecipeGenRequest(BaseModel):
     mode: str = "quick"
 
 @app.post("/generate-recipe")
-@app.post("/api/generate-recipe")
 def generate_recipe(req: RecipeGenRequest):
     data = get_inventory()
     inv = data["inventory"]
