@@ -23,7 +23,9 @@ if API_KEY:
 
 MODELS_TO_TRY = ["gemini-3.6-flash", "gemini-3.1-pro-preview"]
 
-app = FastAPI(title="PantryOS Engine")
+# api/index.py
+
+app = FastAPI(title="PantryOS Engine", root_path="/api")
 
 app.add_middleware(
     CORSMiddleware,
