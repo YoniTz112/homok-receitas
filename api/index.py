@@ -11,12 +11,17 @@ from pydantic import BaseModel, Field
 from google import genai
 from google.genai import types
 
-# 1. Caminho gravável compatível com Vercel Serverless
+# 1. Caminho único gravável no ambiente Serverless da Vercel
 DB_PATH = "/tmp/pantry.db"
 
-# 2. Inicialização segura do cliente Gemini
+# 2. Configurações de IA
 API_KEY = os.environ.get("GEMINI_API_KEY", "")
-client = genai.Client(api_key=API_KEY) if API_KEY else None
+client = None
+if API_KEY:
+    try:
+        client = genai.Client(api_key=API_KEY)
+    except Exception:
+        pass
 
 MODELS_TO_TRY = ["gemini-3.6-flash", "gemini-3.1-pro-preview"]
 
@@ -30,25 +35,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DB_PATH = "pantry.db"
-
 def init_db():
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS inventory (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                quantity TEXT NOT NULL,
-                category TEXT NOT NULL,
-                zone TEXT NOT NULL DEFAULT 'fridge',
-                added_at TEXT NOT NULL,
-                expires_at TEXT NOT NULL,
-                estimated_value REAL DEFAULT 10.0,
-                is_consumed INTEGER DEFAULT 0
-            )
-        """)
-        conn.commit()
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS inventory (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    quantity TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    zone TEXT NOT NULL DEFAULT 'fridge_shelf',
+                    added_at TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    estimated_value REAL DEFAULT 10.0,
+                    is_consumed INTEGER DEFAULT 0
+                )
+            """)
+            conn.commit()
+    except Exception as e:
+        print(f"Erro ao inicializar DB: {e}")
 
 init_db()
 
@@ -88,10 +94,9 @@ class CulinaryPlanResponse(BaseModel):
 def run_ai_structured(contents, schema, prompt):
     global client
     if not client:
-        # Tenta carregar caso a variável tenha entrado no ambiente da request
         api_key = os.environ.get("GEMINI_API_KEY", "")
         if not api_key:
-            raise HTTPException(status_code=500, detail="GEMINI_API_KEY não configurada nas variáveis de ambiente da Vercel.")
+            raise HTTPException(status_code=500, detail="GEMINI_API_KEY não configurada no painel da Vercel.")
         client = genai.Client(api_key=api_key)
         
     last_err = None
@@ -156,6 +161,7 @@ class ManualItemInput(BaseModel):
 
 @app.post("/api/inventory/manual")
 def add_manual_item(item: ManualItemInput):
+    init_db()
     now = datetime.now()
     expires_at = now + timedelta(days=item.shelf_life_days)
     with sqlite3.connect(DB_PATH) as conn:
@@ -172,6 +178,7 @@ class BatchAddRequest(BaseModel):
 
 @app.post("/api/inventory/batch-add")
 def batch_add_items(req: BatchAddRequest):
+    init_db()
     now = datetime.now()
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
@@ -186,6 +193,7 @@ def batch_add_items(req: BatchAddRequest):
 
 @app.get("/api/inventory")
 def get_inventory():
+    init_db()
     now = datetime.now()
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
@@ -193,8 +201,6 @@ def get_inventory():
         rows = cursor.fetchall()
 
     items = []
-    total_saved_value = 0.0
-
     for r in rows:
         exp_date = datetime.fromisoformat(r[6])
         hours_left = (exp_date - now).total_seconds() / 3600
@@ -207,7 +213,7 @@ def get_inventory():
         else:
             status = "fresh"
 
-        total_saved_value += r[7] if r[7] else 0.0
+        val = r[7] if r[7] else 0.0
 
         items.append({
             "id": r[0],
@@ -217,7 +223,7 @@ def get_inventory():
             "zone": r[4],
             "days_left": days_left,
             "status": status,
-            "value": r[7]
+            "value": val
         })
 
     items.sort(key=lambda x: x["days_left"])
@@ -234,6 +240,7 @@ def get_inventory():
 
 @app.delete("/api/inventory/{item_id}")
 def mark_as_consumed(item_id: int):
+    init_db()
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE inventory SET is_consumed = 1 WHERE id = ?", (item_id,))
@@ -241,7 +248,7 @@ def mark_as_consumed(item_id: int):
     return {"status": "ok"}
 
 class RecipeGenRequest(BaseModel):
-    mode: str = "quick" # quick, dinner, preservation
+    mode: str = "quick"
 
 @app.post("/api/generate-recipe")
 def generate_recipe(req: RecipeGenRequest):
@@ -285,7 +292,7 @@ def generate_recipe(req: RecipeGenRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- INTERFACE PROFISSIONAL ---
+# --- INTERFACE ---
 @app.get("/", response_class=HTMLResponse)
 def index():
     return """
@@ -321,7 +328,6 @@ def index():
 
       <div class="w-full max-w-4xl px-4 py-8 space-y-8">
         
-        <!-- Navbar Superior -->
         <header class="flex items-center justify-between border-b border-subtle pb-6">
           <div class="flex items-center gap-3">
             <div class="h-9 w-9 rounded-lg bg-zinc-800 border border-subtle flex items-center justify-center text-white">
@@ -348,7 +354,6 @@ def index():
           </div>
         </header>
 
-        <!-- Painel de Métricas -->
         <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div class="p-4 rounded-xl bg-zinc-900 border border-subtle space-y-1">
             <p class="text-[11px] font-medium uppercase tracking-wider text-zinc-500">Itens Monitorados</p>
@@ -368,7 +373,6 @@ def index():
           </div>
         </section>
 
-        <!-- Motor Culinário Inteligente -->
         <section class="p-5 rounded-2xl bg-zinc-900 border border-subtle space-y-4">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -388,7 +392,6 @@ def index():
           </div>
         </section>
 
-        <!-- Listagem e Filtros de Inventário -->
         <section class="space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
@@ -407,10 +410,8 @@ def index():
 
       </div>
 
-      <!-- INPUT OCULTO DE IMAGEM -->
       <input type="file" id="imageScanInput" accept="image/*" class="hidden" onchange="processImageScan(this)">
 
-      <!-- MODAL: REVISÃO DE SCAN -->
       <div id="scanReviewModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-zinc-900 w-full max-w-lg rounded-2xl border border-subtle p-6 space-y-4 max-h-[85vh] flex flex-col">
           <div class="flex items-center justify-between pb-3 border-b border-subtle">
@@ -430,7 +431,6 @@ def index():
         </div>
       </div>
 
-      <!-- MODAL: CADASTRO MANUAL -->
       <div id="manualAddModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-zinc-900 w-full max-w-md rounded-2xl border border-subtle p-6 space-y-4">
           <div class="flex items-center justify-between pb-3 border-b border-subtle">
@@ -483,7 +483,6 @@ def index():
         </div>
       </div>
 
-      <!-- MODAL: RECEITA CULINÁRIA -->
       <div id="recipePlanModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-zinc-900 w-full max-w-2xl rounded-2xl border border-subtle p-6 space-y-5 max-h-[90vh] flex flex-col">
           <div class="flex items-center justify-between pb-3 border-b border-subtle">
@@ -501,7 +500,6 @@ def index():
         </div>
       </div>
 
-      <!-- Overlay de Processamento -->
       <div id="globalSpinner" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center gap-3">
         <div class="w-7 h-7 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
         <p id="spinnerText" class="text-xs font-medium text-zinc-300">Executando computação óptica...</p>
@@ -630,16 +628,21 @@ def index():
         }
 
         async function loadInventory() {
-          const res = await fetch('/api/inventory');
-          const data = await res.json();
-          fullInventory = data.inventory;
+          try {
+            const res = await fetch('/api/inventory');
+            if (!res.ok) throw new Error("Falha ao obter dados");
+            const data = await res.json();
+            fullInventory = data.inventory;
 
-          document.getElementById('metricTotal').innerText = data.metrics.total_items;
-          document.getElementById('metricWarning').innerText = data.metrics.warning_count;
-          document.getElementById('metricCritical').innerText = data.metrics.critical_count;
-          document.getElementById('metricValue').innerText = `R$ ${data.metrics.potential_waste_value.toFixed(2)}`;
+            document.getElementById('metricTotal').innerText = data.metrics.total_items;
+            document.getElementById('metricWarning').innerText = data.metrics.warning_count;
+            document.getElementById('metricCritical').innerText = data.metrics.critical_count;
+            document.getElementById('metricValue').innerText = `R$ ${data.metrics.potential_waste_value.toFixed(2)}`;
 
-          renderInventoryList();
+            renderInventoryList();
+          } catch (err) {
+            console.error("Erro no loadInventory:", err);
+          }
         }
 
         function renderInventoryList() {
