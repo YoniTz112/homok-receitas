@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.db
+fridge.db
+pantry.db
+.DS_Store
+.env
