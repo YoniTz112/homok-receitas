@@ -32,7 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Middleware para normalizar prefixos de rotas enviados pela Vercel
+# Middleware de normalização de rotas Serverless da Vercel
 @app.middleware("http")
 async def normalize_vercel_routes(request: Request, call_next):
     path = request.scope.get("path", "")
@@ -66,14 +66,14 @@ def init_db():
 
 init_db()
 
-# --- SCHEMAS ---
+# --- SCHEMAS PREDITIVOS ---
 class DetectedItem(BaseModel):
-    name: str = Field(description="Nome padronizado do ingrediente em português")
-    quantity_approx: str = Field(description="Quantidade numérica e unidade")
-    category: str = Field(description="Uma entre: protein, produce, dairy, grains, condiments, drinks, bakery, other")
-    zone: str = Field(description="Zona ideal: fridge_shelf, produce_drawer, freezer, pantry")
-    shelf_life_days: int = Field(description="Vida útil média em dias")
-    confidence: str = Field(description="HIGH ou MEDIUM")
+    name: str = Field(description="Standardized name of the ingredient in the requested language")
+    quantity_approx: str = Field(description="Numerical quantity and unit (e.g. 2 un, 500g)")
+    category: str = Field(description="One of: produce, protein, dairy, grains, condiments, other")
+    zone: str = Field(description="Ideal zone: fridge_shelf, produce_drawer, freezer, pantry")
+    shelf_life_days: int = Field(description="Estimated shelf life in days")
+    confidence: str = Field(description="HIGH or MEDIUM")
 
 class VisionScanResponse(BaseModel):
     detected_items: List[DetectedItem]
@@ -131,16 +131,25 @@ def run_ai_structured(contents, schema, prompt):
 # --- ENDPOINTS ---
 
 @app.post("/scan")
-async def scan_inventory(file: UploadFile = File(...)):
+@app.post("/api/scan")
+async def scan_inventory(file: UploadFile = File(...), lang: str = "pt"):
     try:
         image_bytes = await file.read()
         content_type = file.content_type or "image/jpeg"
         if "heic" in content_type.lower() or "heif" in content_type.lower() or content_type == "application/octet-stream":
             content_type = "image/jpeg"
 
-        prompt = """
-        Identifique apenas alimentos visíveis em primeiro plano com clareza.
+        lang_instruction = (
+            "Retorne os nomes dos alimentos estritamente em ESPANHOL DO URUGUAI / Rioplatense "
+            "(ex: morrón, frutillas, chauchas, manteca, zapallito, boniato, palta, dulce de leche, etc.)."
+            if lang == "uy" else
+            "Retorne os nomes dos alimentos estritamente em PORTUGUÊS DO BRASIL."
+        )
+
+        prompt = f"""
+        Identifique apenas alimentos comestíveis visíveis com clareza em primeiro plano.
         Determine a zona ideal (produce_drawer, fridge_shelf, freezer, pantry).
+        {lang_instruction}
         Retorne apenas itens com confiança HIGH ou MEDIUM.
         """
 
@@ -164,6 +173,7 @@ class ManualItemInput(BaseModel):
     estimated_value: Optional[float] = 12.0
 
 @app.post("/inventory/manual")
+@app.post("/api/inventory/manual")
 def add_manual_item(item: ManualItemInput):
     init_db()
     now = datetime.now()
@@ -181,6 +191,7 @@ class BatchAddRequest(BaseModel):
     items: List[DetectedItem]
 
 @app.post("/inventory/batch-add")
+@app.post("/api/inventory/batch-add")
 def batch_add_items(req: BatchAddRequest):
     init_db()
     now = datetime.now()
@@ -196,6 +207,7 @@ def batch_add_items(req: BatchAddRequest):
     return {"status": "ok"}
 
 @app.get("/inventory")
+@app.get("/api/inventory")
 def get_inventory():
     init_db()
     now = datetime.now()
@@ -243,6 +255,7 @@ def get_inventory():
     }
 
 @app.delete("/inventory/{item_id}")
+@app.delete("/api/inventory/{item_id}")
 def mark_as_consumed(item_id: int):
     init_db()
     with sqlite3.connect(DB_PATH) as conn:
@@ -253,8 +266,10 @@ def mark_as_consumed(item_id: int):
 
 class RecipeGenRequest(BaseModel):
     mode: str = "quick"
+    lang: Optional[str] = "pt"
 
 @app.post("/generate-recipe")
+@app.post("/api/generate-recipe")
 def generate_recipe(req: RecipeGenRequest):
     data = get_inventory()
     inv = data["inventory"]
@@ -264,20 +279,30 @@ def generate_recipe(req: RecipeGenRequest):
     critical = [f"{i['name']} ({i['quantity']})" for i in inv if i["status"] in ["critical", "warning"]]
     fresh = [f"{i['name']} ({i['quantity']})" for i in inv if i["status"] == "fresh"]
 
+    is_uy = req.lang == "uy"
+
     mode_prompts = {
-        "quick": "Priorize uma preparação ágil de no máximo 20 minutos.",
-        "dinner": "Elabore um prato principal estruturado e refinado.",
-        "preservation": "Elabore uma técnica de pré-preparo, conserva ácida ou congelamento seguro."
+        "quick": "Priorize uma preparação ágil de no máximo 20 minutos." if not is_uy else "Priorizá una receta al toque de máximo 20 minutos.",
+        "dinner": "Elabore um prato principal estruturado e refinado." if not is_uy else "Elaborá un plato principal bien resuelto y completo para la cena o almuerzo.",
+        "preservation": "Elabore uma técnica de pré-preparo, conserva ácida ou congelamento seguro." if not is_uy else "Elaborá una técnica de pre-elaboración, conserva o congelado seguro para no perder nada."
     }
+
+    lang_rules = (
+        "Escreva todo o conteúdo em ESPANHOL DO URUGUAI (Rioplatense, use 'vos/tuteo uruguayo', "
+        "termos como morrón, manteca, chauchas, boniato, etc.)."
+        if is_uy else
+        "Escreva todo o conteúdo em PORTUGUÊS DO BRASIL."
+    )
 
     prompt = f"""
     Atue como Chef Executivo.
     OBJETIVO: {mode_prompts.get(req.mode, mode_prompts['quick'])}
+    IDIOMA: {lang_rules}
     
     INVENTÁRIO ATIVO:
     - INSUMOS CRÍTICOS: {', '.join(critical) if critical else 'Nenhum crítico'}
     - INSUMOS FRESCOS: {', '.join(fresh) if fresh else 'Nenhum adicional'}
-    - DESPENSA BÁSICA: Azeite de oliva, manteiga, alho, cebola, sal, pimenta-do-reino, água.
+    - DESPENSA BÁSICA: Azeite/Aceite, manteiga/manteca, alho/ajo, cebola/cebolla, sal, pimenta/pimienta, água/agua.
     """
 
     try:
