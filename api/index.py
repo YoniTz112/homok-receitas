@@ -124,6 +124,7 @@ def run_ai_structured(contents, schema, prompt):
 # --- ENDPOINTS ---
 
 @app.post("/api/scan")
+@app.post("/scan")
 async def scan_inventory(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
@@ -160,6 +161,7 @@ class ManualItemInput(BaseModel):
     estimated_value: Optional[float] = 12.0
 
 @app.post("/api/inventory/manual")
+@app.post("/inventory/manual")
 def add_manual_item(item: ManualItemInput):
     init_db()
     now = datetime.now()
@@ -177,6 +179,7 @@ class BatchAddRequest(BaseModel):
     items: List[DetectedItem]
 
 @app.post("/api/inventory/batch-add")
+@app.post("/inventory/batch-add")
 def batch_add_items(req: BatchAddRequest):
     init_db()
     now = datetime.now()
@@ -192,6 +195,7 @@ def batch_add_items(req: BatchAddRequest):
     return {"status": "ok"}
 
 @app.get("/api/inventory")
+@app.get("/inventory")
 def get_inventory():
     init_db()
     now = datetime.now()
@@ -239,6 +243,7 @@ def get_inventory():
     }
 
 @app.delete("/api/inventory/{item_id}")
+@app.delete("/inventory/{item_id}")
 def mark_as_consumed(item_id: int):
     init_db()
     with sqlite3.connect(DB_PATH) as conn:
@@ -251,6 +256,7 @@ class RecipeGenRequest(BaseModel):
     mode: str = "quick"
 
 @app.post("/api/generate-recipe")
+@app.post("/generate-recipe")
 def generate_recipe(req: RecipeGenRequest):
     data = get_inventory()
     inv = data["inventory"]
@@ -292,8 +298,10 @@ def generate_recipe(req: RecipeGenRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- INTERFACE ---
+# --- INTERFACE (Suporte a todas as variações de rota na Vercel) ---
 @app.get("/", response_class=HTMLResponse)
+@app.get("/api", response_class=HTMLResponse)
+@app.get("/api/index", response_class=HTMLResponse)
 def index():
     return """
     <!DOCTYPE html>
