@@ -4,17 +4,15 @@ import time
 import traceback
 from datetime import datetime, timedelta
 from typing import List, Optional
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, File, UploadFile, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from google import genai
 from google.genai import types
 
-# 1. Caminho único gravável no ambiente Serverless da Vercel
 DB_PATH = "/tmp/pantry.db"
 
-# 2. Configurações de IA
 API_KEY = os.environ.get("GEMINI_API_KEY", "")
 client = None
 if API_KEY:
@@ -25,7 +23,7 @@ if API_KEY:
 
 MODELS_TO_TRY = ["gemini-3.6-flash", "gemini-3.1-pro-preview"]
 
-app = FastAPI(title="PantryOS - Inventory & Waste Mitigation Engine")
+app = FastAPI(title="PantryOS Engine")
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,17 +52,17 @@ def init_db():
             """)
             conn.commit()
     except Exception as e:
-        print(f"Erro ao inicializar DB: {e}")
+        print(f"DB Init error: {e}")
 
 init_db()
 
-# --- SCHEMAS PREDITIVOS ---
+# --- SCHEMAS ---
 class DetectedItem(BaseModel):
-    name: str = Field(description="Nome padronizado do ingrediente em português (ex: Queijo Parmesão, Alface Americana)")
-    quantity_approx: str = Field(description="Quantidade numérica e unidade (ex: 2 unidades, 300g, 1 maço)")
+    name: str = Field(description="Nome padronizado do ingrediente em português")
+    quantity_approx: str = Field(description="Quantidade numérica e unidade")
     category: str = Field(description="Uma entre: protein, produce, dairy, grains, condiments, drinks, bakery, other")
-    zone: str = Field(description="Zona de conservação ideal: fridge_shelf, produce_drawer, freezer, pantry")
-    shelf_life_days: int = Field(description="Vida útil média em dias na zona indicada")
+    zone: str = Field(description="Zona ideal: fridge_shelf, produce_drawer, freezer, pantry")
+    shelf_life_days: int = Field(description="Vida útil média em dias")
     confidence: str = Field(description="HIGH ou MEDIUM")
 
 class VisionScanResponse(BaseModel):
@@ -90,13 +88,12 @@ class CulinaryPlanResponse(BaseModel):
     execution_steps: List[RecipeStep]
     conservation_guide: str
 
-# --- RUNNER COM RETRY ---
 def run_ai_structured(contents, schema, prompt):
     global client
     if not client:
         api_key = os.environ.get("GEMINI_API_KEY", "")
         if not api_key:
-            raise HTTPException(status_code=500, detail="GEMINI_API_KEY não configurada no painel da Vercel.")
+            raise HTTPException(status_code=500, detail="GEMINI_API_KEY não configurada na Vercel.")
         client = genai.Client(api_key=api_key)
         
     last_err = None
@@ -121,10 +118,10 @@ def run_ai_structured(contents, schema, prompt):
                     break
     raise last_err
 
-# --- ENDPOINTS ---
+# --- ROTAS DA API ---
 
-@app.post("/api/scan")
-@app.post("/scan")
+@app.api_route("/api/scan", methods=["POST"])
+@app.api_route("/scan", methods=["POST"])
 async def scan_inventory(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
@@ -133,12 +130,9 @@ async def scan_inventory(file: UploadFile = File(...)):
             content_type = "image/jpeg"
 
         prompt = """
-        Atue como um sistema de auditoria visual de inventário gastronômico.
         Identifique apenas itens comestíveis visíveis com nitidez.
-        DIRETRIZES DE EXTRAÇÃO:
-        1. Descarte embalagens vazias, fundos indistintos e sombras.
-        2. Determine a zona ideal (produce_drawer, fridge_shelf, freezer, pantry).
-        3. Apenas itens com confiança HIGH ou MEDIUM devem ser retornados.
+        Determine a zona ideal (produce_drawer, fridge_shelf, freezer, pantry).
+        Retorne apenas itens com confiança HIGH ou MEDIUM.
         """
 
         raw_json = run_ai_structured(
@@ -160,8 +154,8 @@ class ManualItemInput(BaseModel):
     shelf_life_days: int
     estimated_value: Optional[float] = 12.0
 
-@app.post("/api/inventory/manual")
-@app.post("/inventory/manual")
+@app.api_route("/api/inventory/manual", methods=["POST"])
+@app.api_route("/inventory/manual", methods=["POST"])
 def add_manual_item(item: ManualItemInput):
     init_db()
     now = datetime.now()
@@ -178,8 +172,8 @@ def add_manual_item(item: ManualItemInput):
 class BatchAddRequest(BaseModel):
     items: List[DetectedItem]
 
-@app.post("/api/inventory/batch-add")
-@app.post("/inventory/batch-add")
+@app.api_route("/api/inventory/batch-add", methods=["POST"])
+@app.api_route("/inventory/batch-add", methods=["POST"])
 def batch_add_items(req: BatchAddRequest):
     init_db()
     now = datetime.now()
@@ -194,8 +188,8 @@ def batch_add_items(req: BatchAddRequest):
         conn.commit()
     return {"status": "ok"}
 
-@app.get("/api/inventory")
-@app.get("/inventory")
+@app.api_route("/api/inventory", methods=["GET"])
+@app.api_route("/inventory", methods=["GET"])
 def get_inventory():
     init_db()
     now = datetime.now()
@@ -242,8 +236,8 @@ def get_inventory():
         }
     }
 
-@app.delete("/api/inventory/{item_id}")
-@app.delete("/inventory/{item_id}")
+@app.api_route("/api/inventory/{item_id}", methods=["DELETE"])
+@app.api_route("/inventory/{item_id}", methods=["DELETE"])
 def mark_as_consumed(item_id: int):
     init_db()
     with sqlite3.connect(DB_PATH) as conn:
@@ -255,8 +249,8 @@ def mark_as_consumed(item_id: int):
 class RecipeGenRequest(BaseModel):
     mode: str = "quick"
 
-@app.post("/api/generate-recipe")
-@app.post("/generate-recipe")
+@app.api_route("/api/generate-recipe", methods=["POST"])
+@app.api_route("/generate-recipe", methods=["POST"])
 def generate_recipe(req: RecipeGenRequest):
     data = get_inventory()
     inv = data["inventory"]
@@ -269,22 +263,17 @@ def generate_recipe(req: RecipeGenRequest):
     mode_prompts = {
         "quick": "Priorize uma preparação ágil de no máximo 20 minutos.",
         "dinner": "Elabore um prato principal estruturado e refinado.",
-        "preservation": "Elabore uma técnica de pré-preparo, conserva ácida, redução ou técnica de congelamento seguro para impedir a perda dos ingredientes."
+        "preservation": "Elabore uma técnica de pré-preparo, conserva ácida ou congelamento seguro."
     }
 
     prompt = f"""
-    Atue como Chef Executivo e Consultor em Eficiência de Insumos.
+    Atue como Chef Executivo.
     OBJETIVO: {mode_prompts.get(req.mode, mode_prompts['quick'])}
     
     INVENTÁRIO ATIVO:
-    - INSUMOS EM RISCO IMINENTE: {', '.join(critical) if critical else 'Nenhum crítico'}
-    - INSUMOS EM ESTADO FRESCO: {', '.join(fresh) if fresh else 'Nenhum adicional'}
-    - BASE DE DESPENSA: Azeite de oliva, manteiga, alho, cebola, sal, pimenta-do-reino, água.
-    
-    REGRAS OBRIGATÓRIAS:
-    1. Utilize prioritariamente todos os insumos em risco iminente.
-    2. Liste os passos com clareza técnica e precisão temporal.
-    3. Atribua um Waste Reduction Score (0 a 100) baseado no volume de itens críticos aproveitados.
+    - INSUMOS CRÍTICOS: {', '.join(critical) if critical else 'Nenhum crítico'}
+    - INSUMOS FRESCOS: {', '.join(fresh) if fresh else 'Nenhum adicional'}
+    - DESPENSA BÁSICA: Azeite de oliva, manteiga, alho, cebola, sal, pimenta-do-reino, água.
     """
 
     try:
@@ -298,10 +287,10 @@ def generate_recipe(req: RecipeGenRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- INTERFACE (Suporte a todas as variações de rota na Vercel) ---
-@app.get("/", response_class=HTMLResponse)
-@app.get("/api", response_class=HTMLResponse)
-@app.get("/api/index", response_class=HTMLResponse)
+# --- INTERFACE ---
+@app.api_route("/", methods=["GET"])
+@app.api_route("/api", methods=["GET"])
+@app.api_route("/api/index", methods=["GET"])
 def index():
     return """
     <!DOCTYPE html>
@@ -526,13 +515,16 @@ def index():
           if (!input.files || !input.files[0]) return;
           const file = input.files[0];
 
-          showLoading("Processando visão computacional e extraindo alimentos...");
+          showLoading("Processando visão computacional...");
           const form = new FormData();
           form.append('file', file);
 
           try {
             const res = await fetch('/api/scan', { method: 'POST', body: form });
-            if (!res.ok) throw new Error((await res.json()).detail || "Falha na análise");
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.detail || `Erro HTTP ${res.status}`);
+            }
             const data = await res.json();
             
             stagedItems = data.items;
@@ -541,7 +533,7 @@ def index():
             renderScanReview(stagedItems);
           } catch (e) {
             hideLoading();
-            alert("Erro: " + e.message);
+            alert("Falha no Scan: " + e.message);
           }
         }
 
@@ -586,11 +578,12 @@ def index():
 
           showLoading("Registrando no banco de dados...");
           try {
-            await fetch('/api/inventory/batch-add', {
+            const res = await fetch('/api/inventory/batch-add', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ items: stagedItems })
             });
+            if (!res.ok) throw new Error("Erro ao salvar itens");
             closeScanModal();
             hideLoading();
             await loadInventory();
@@ -620,11 +613,12 @@ def index():
 
           showLoading("Salvando...");
           try {
-            await fetch('/api/inventory/manual', {
+            const res = await fetch('/api/inventory/manual', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
             });
+            if (!res.ok) throw new Error("Erro ao salvar item manual");
             closeManualModal();
             e.target.reset();
             hideLoading();
@@ -638,9 +632,9 @@ def index():
         async function loadInventory() {
           try {
             const res = await fetch('/api/inventory');
-            if (!res.ok) throw new Error("Falha ao obter dados");
+            if (!res.ok) throw new Error("Falha ao obter inventário");
             const data = await res.json();
-            fullInventory = data.inventory;
+            fullInventory = data.inventory || [];
 
             document.getElementById('metricTotal').innerText = data.metrics.total_items;
             document.getElementById('metricWarning').innerText = data.metrics.warning_count;
@@ -731,14 +725,14 @@ def index():
 
         async function requestRecipe() {
           const mode = document.getElementById('recipeModeSelect').value;
-          showLoading("Otimizando insumos e construindo plano gastronômico...");
+          showLoading("Otimizando insumos...");
           try {
             const res = await fetch('/api/generate-recipe', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ mode })
             });
-            if (!res.ok) throw new Error((await res.json()).detail || "Falha na geração");
+            if (!res.ok) throw new Error("Falha na geração da receita");
             const plan = await res.json();
 
             document.getElementById('planTitle').innerText = plan.recipe_name;
@@ -771,7 +765,7 @@ def index():
               </div>
 
               <div class="p-3 rounded-lg bg-zinc-950 border border-subtle space-y-1">
-                <h5 class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Protocolo de Conservação / Aproveitamento</h5>
+                <h5 class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Protocolo de Conservação</h5>
                 <p class="text-zinc-400 text-xs">${plan.conservation_guide}</p>
               </div>
             `;
