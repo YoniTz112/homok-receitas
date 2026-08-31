@@ -1,101 +1,119 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PantryOS — Supply & Culinary Intelligence</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
           colors: {
-            zinc: { 950: '#09090b', 900: '#121215', 850: '#18181b', 800: '#27272a', 700: '#3f3f46' },
-            accent: { 500: '#10b981', 600: '#059669' }
+            brand: {
+              bg: '#F8F6F0',       
+              dark: '#214334',     
+              accent: '#8AC440',   
+              surface: '#FFFFFF',  
+              border: 'rgba(33, 67, 52, 0.12)' 
+            }
           }
         }
       }
     }
   </script>
   <style>
-    body { background-color: #09090b; color: #e4e4e7; }
-    .border-subtle { border-color: rgba(255, 255, 255, 0.08); }
+    body { background-color: #F8F6F0; color: #214334; font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+    .border-subtle { border-color: rgba(33, 67, 52, 0.12); }
+    .shadow-card { box-shadow: 0 4px 20px -2px rgba(33, 67, 52, 0.05); }
+    
+    /* Scrollbar customizada para Desktop */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(33, 67, 52, 0.2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(33, 67, 52, 0.4); }
+    
+    /* Ocultar scrollbar nos filtros no Mobile */
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="min-h-screen flex justify-center selection:bg-emerald-500/20 selection:text-emerald-400">
+<body class="min-h-screen flex justify-center selection:bg-brand-accent/20 selection:text-brand-dark">
 
-  <div class="w-full max-w-4xl px-4 py-8 space-y-8">
+  <div class="w-full max-w-5xl px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
     
     <!-- Navbar Superior -->
-    <header class="flex items-center justify-between border-b border-subtle pb-6">
-      <div class="flex items-center gap-3">
-        <div class="h-9 w-9 rounded-lg bg-zinc-800 border border-subtle flex items-center justify-center text-white">
-          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+    <header class="flex items-center justify-between border-b border-subtle pb-5 sm:pb-6">
+      <div class="flex items-center gap-3 sm:gap-4">
+        <!-- Logo Nova -->
+        <div class="h-10 sm:h-12 w-auto flex items-center justify-center">
+          <img src="Logo_with_Refrigerator_and_Minimal_Ingredients-removebg-preview.png" alt="PantryOS Logo" class="h-full object-contain">
         </div>
-        <div>
+        <div class="hidden sm:block">
           <div class="flex items-center gap-2">
-            <h1 class="text-sm font-semibold tracking-tight text-white">PantryOS</h1>
-            <span class="text-[10px] font-medium uppercase tracking-widest px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-subtle">v2.5</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-dark/5 text-brand-dark border border-brand-dark/10">v2.5</span>
           </div>
-          <p id="t_subtitle" class="text-xs text-zinc-500">Controle de Insumos e Mitigação de Desperdício</p>
+          <p id="t_subtitle" class="text-xs text-brand-dark/60 font-medium mt-1">Supply & Culinary Intelligence</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2.5">
-        <button onclick="toggleLanguage()" id="langToggleBtn" class="text-xs font-semibold text-zinc-300 hover:text-white bg-zinc-900 border border-subtle px-3 py-2 rounded-lg transition hover:bg-zinc-850 flex items-center gap-1.5">
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <!-- Textos escondidos no mobile (hidden sm:inline) -->
+        <button onclick="toggleLanguage()" id="langToggleBtn" class="text-xs font-semibold text-brand-dark/70 hover:text-brand-dark bg-brand-surface border border-subtle px-2.5 sm:px-3 py-2 rounded-lg transition hover:bg-brand-bg flex items-center gap-1.5 shadow-sm">
           <span id="langFlag">🇺🇾</span>
-          <span id="langLabel">ES (UY)</span>
+          <span id="langLabel" class="hidden sm:inline">ES (UY)</span>
         </button>
 
-        <button onclick="openManualModal()" class="text-xs font-medium text-zinc-300 hover:text-white bg-zinc-900 border border-subtle px-3.5 py-2 rounded-lg transition hover:bg-zinc-850 flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          <span id="t_manualBtn">Manual</span>
+        <button onclick="openManualModal()" class="text-xs font-semibold text-brand-dark/70 hover:text-brand-dark bg-brand-surface border border-subtle px-2.5 sm:px-3.5 py-2 rounded-lg transition hover:bg-brand-bg flex items-center gap-1.5 shadow-sm">
+          <svg class="w-4 h-4 text-brand-dark/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span id="t_manualBtn" class="hidden sm:inline">Manual</span>
         </button>
-        <button onclick="triggerScan()" class="text-xs font-medium text-zinc-950 bg-emerald-400 hover:bg-emerald-300 px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 font-semibold">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          <span id="t_scanBtn">Escanear Insumos</span>
+        
+        <button onclick="triggerScan()" class="text-xs font-bold text-white bg-brand-dark hover:bg-brand-dark/90 px-3 sm:px-4 py-2 rounded-lg transition flex items-center gap-1.5 sm:gap-2 shadow-md">
+          <svg class="w-4 h-4 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span id="t_scanBtn">Escanear</span>
         </button>
       </div>
     </header>
 
     <!-- Painel de Métricas -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="p-4 rounded-xl bg-zinc-900 border border-subtle space-y-1">
-        <p id="t_mTotal" class="text-[11px] font-medium uppercase tracking-wider text-zinc-500">Itens Monitorados</p>
-        <p id="metricTotal" class="text-2xl font-bold text-white tracking-tight">0</p>
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div class="p-4 sm:p-5 rounded-2xl bg-brand-surface border border-subtle space-y-1 sm:space-y-1.5 shadow-card">
+        <p id="t_mTotal" class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-dark/50 truncate">Itens</p>
+        <p id="metricTotal" class="text-2xl sm:text-3xl font-extrabold text-brand-dark tracking-tight">0</p>
       </div>
-      <div class="p-4 rounded-xl bg-zinc-900 border border-subtle space-y-1">
-        <p id="t_mWarning" class="text-[11px] font-medium uppercase tracking-wider text-amber-500">Expiração Iminente</p>
-        <p id="metricWarning" class="text-2xl font-bold text-amber-400 tracking-tight">0</p>
+      <div class="p-4 sm:p-5 rounded-2xl bg-brand-surface border border-subtle space-y-1 sm:space-y-1.5 shadow-card">
+        <p id="t_mWarning" class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-600 truncate">Iminente</p>
+        <p id="metricWarning" class="text-2xl sm:text-3xl font-extrabold text-amber-500 tracking-tight">0</p>
       </div>
-      <div class="p-4 rounded-xl bg-zinc-900 border border-subtle space-y-1">
-        <p id="t_mCritical" class="text-[11px] font-medium uppercase tracking-wider text-rose-500">Risco Crítico (48h)</p>
-        <p id="metricCritical" class="text-2xl font-bold text-rose-400 tracking-tight">0</p>
+      <div class="p-4 sm:p-5 rounded-2xl bg-brand-surface border border-subtle space-y-1 sm:space-y-1.5 shadow-card">
+        <p id="t_mCritical" class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-rose-600 truncate">Risco (48h)</p>
+        <p id="metricCritical" class="text-2xl sm:text-3xl font-extrabold text-rose-500 tracking-tight">0</p>
       </div>
-      <div class="p-4 rounded-xl bg-zinc-900 border border-subtle space-y-1">
-        <p id="t_mValue" class="text-[11px] font-medium uppercase tracking-wider text-emerald-500">Valor em Risco</p>
-        <p id="metricValue" class="text-2xl font-bold text-emerald-400 tracking-tight">R$ 0,00</p>
+      <div class="p-4 sm:p-5 rounded-2xl bg-brand-surface border border-subtle space-y-1 sm:space-y-1.5 shadow-card">
+        <p id="t_mValue" class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-accent truncate">Em Risco</p>
+        <p id="metricValue" class="text-2xl sm:text-3xl font-extrabold text-brand-dark tracking-tight">R$ 0,00</p>
       </div>
     </section>
 
     <!-- Motor Culinário Inteligente -->
-    <section class="p-5 rounded-2xl bg-zinc-900 border border-subtle space-y-4">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <section class="p-5 sm:p-6 rounded-2xl bg-brand-surface border border-subtle space-y-4 shadow-card relative overflow-hidden">
+      <div class="absolute -right-16 -top-16 w-48 h-48 bg-brand-accent/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
         <div>
-          <h2 id="t_planTitle" class="text-sm font-semibold text-white tracking-tight">Planejamento Gastronômico de Mitigação</h2>
-          <p id="t_planSub" class="text-xs text-zinc-400 mt-0.5">Gera preparos focados no aproveitamento imediato dos itens críticos.</p>
+          <h2 id="t_planTitle" class="text-base font-bold text-brand-dark tracking-tight">Planejamento Gastronômico</h2>
+          <p id="t_planSub" class="text-xs sm:text-sm text-brand-dark/60 mt-1 leading-relaxed">Gera preparos focados no aproveitamento imediato dos itens críticos.</p>
         </div>
-        <div class="flex items-center gap-2">
-          <select id="recipeModeSelect" class="bg-zinc-950 border border-subtle text-xs text-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-700">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          <select id="recipeModeSelect" class="bg-brand-bg border border-subtle text-sm font-medium text-brand-dark rounded-xl px-4 py-3 sm:py-2.5 focus:outline-none focus:border-brand-accent transition shadow-sm w-full sm:w-auto">
             <option value="quick" id="opt_quick">Modo Rápido (&le; 20 min)</option>
             <option value="dinner" id="opt_dinner">Menu Estruturado (Refeição)</option>
             <option value="preservation" id="opt_pres">Técnica de Conservação</option>
           </select>
-          <button onclick="requestRecipe()" id="btnRecipeAction" class="text-xs font-semibold text-white bg-zinc-800 hover:bg-zinc-700 border border-subtle px-4 py-2 rounded-lg transition whitespace-nowrap">
+          <button onclick="requestRecipe()" id="btnRecipeAction" class="text-sm font-bold text-brand-dark bg-brand-accent hover:bg-opacity-90 px-5 py-3 sm:py-2.5 rounded-xl transition whitespace-nowrap shadow-md w-full sm:w-auto">
             <span id="t_genRecipeBtn">Gerar Ordem</span>
           </button>
         </div>
@@ -103,19 +121,23 @@
     </section>
 
     <!-- Listagem e Filtros -->
-    <section class="space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
-          <button onclick="setFilter('all')" class="filter-tab px-3 py-1.5 rounded-lg bg-zinc-800 text-white font-medium border border-subtle" data-filter="all" id="f_all">Todos</button>
-          <button onclick="setFilter('critical')" class="filter-tab px-3 py-1.5 rounded-lg text-zinc-400 font-medium hover:text-white" data-filter="critical" id="f_crit">Críticos</button>
-          <button onclick="setFilter('produce_drawer')" class="filter-tab px-3 py-1.5 rounded-lg text-zinc-400 font-medium hover:text-white" data-filter="produce_drawer" id="f_veg">Gaveta Vegetais</button>
-          <button onclick="setFilter('fridge_shelf')" class="filter-tab px-3 py-1.5 rounded-lg text-zinc-400 font-medium hover:text-white" data-filter="fridge_shelf" id="f_shelf">Prateleiras</button>
+    <section class="space-y-4 sm:space-y-5">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+        <!-- Rolagem horizontal suave no celular -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-sm hide-scrollbar w-full">
+          <button onclick="setFilter('all')" class="filter-tab whitespace-nowrap px-4 py-2.5 sm:py-2 rounded-lg bg-brand-dark text-white font-semibold shadow-md transition flex-shrink-0" data-filter="all" id="f_all">Todos</button>
+          <button onclick="setFilter('critical')" class="filter-tab whitespace-nowrap px-4 py-2.5 sm:py-2 rounded-lg text-brand-dark/60 font-semibold hover:bg-brand-surface border border-transparent hover:border-subtle transition flex-shrink-0" data-filter="critical" id="f_crit">Críticos</button>
+          <button onclick="setFilter('produce_drawer')" class="filter-tab whitespace-nowrap px-4 py-2.5 sm:py-2 rounded-lg text-brand-dark/60 font-semibold hover:bg-brand-surface border border-transparent hover:border-subtle transition flex-shrink-0" data-filter="produce_drawer" id="f_veg">Gaveta Vegetais</button>
+          <button onclick="setFilter('fridge_shelf')" class="filter-tab whitespace-nowrap px-4 py-2.5 sm:py-2 rounded-lg text-brand-dark/60 font-semibold hover:bg-brand-surface border border-transparent hover:border-subtle transition flex-shrink-0" data-filter="fridge_shelf" id="f_shelf">Prateleiras</button>
         </div>
-        <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Buscar insumo..." class="bg-zinc-900 border border-subtle text-xs text-zinc-200 placeholder-zinc-500 rounded-lg px-3 py-2 w-full sm:w-56 focus:outline-none focus:border-zinc-700">
+        <div class="relative w-full lg:w-72 flex-shrink-0">
+          <svg class="w-4 h-4 text-brand-dark/40 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Buscar insumo..." class="bg-brand-surface border border-subtle text-sm font-medium text-brand-dark placeholder-brand-dark/40 rounded-xl pl-10 pr-4 py-2.5 w-full focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition shadow-sm">
+        </div>
       </div>
 
-      <div id="inventoryContainer" class="space-y-2">
-        <div class="text-center py-12 text-zinc-600 text-xs font-medium">Carregando catálogo operacional...</div>
+      <div id="inventoryContainer" class="space-y-3">
+        <div class="text-center py-16 text-brand-dark/40 text-sm font-semibold">Carregando catálogo operacional...</div>
       </div>
     </section>
 
@@ -124,116 +146,123 @@
   <input type="file" id="imageScanInput" accept="image/*" class="hidden" onchange="processImageScan(this)">
 
   <!-- MODAL: REVISÃO DE SCAN -->
-  <div id="scanReviewModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-zinc-900 w-full max-w-lg rounded-2xl border border-subtle p-6 space-y-4 max-h-[85vh] flex flex-col">
-      <div class="flex items-center justify-between pb-3 border-b border-subtle">
+  <div id="scanReviewModal" class="fixed inset-0 bg-brand-dark/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-brand-surface w-full max-w-lg rounded-2xl border border-subtle p-5 sm:p-6 space-y-5 max-h-[90vh] flex flex-col shadow-2xl">
+      <div class="flex items-center justify-between pb-4 border-b border-subtle">
         <div>
-          <h3 id="t_scanRevTitle" class="text-sm font-semibold text-white">Revisão de Entrada Óptica</h3>
-          <p id="t_scanRevSub" class="text-xs text-zinc-400 mt-0.5">Valide as quantidades e categorias antes do registro.</p>
+          <h3 id="t_scanRevTitle" class="text-base font-bold text-brand-dark">Revisão de Entrada Óptica</h3>
+          <p id="t_scanRevSub" class="text-xs font-medium text-brand-dark/60 mt-1">Valide as quantidades e categorias antes do registro.</p>
         </div>
-        <button onclick="closeScanModal()" class="text-zinc-500 hover:text-white text-sm">✕</button>
+        <button onclick="closeScanModal()" class="text-brand-dark/40 hover:text-brand-dark p-2 rounded-lg hover:bg-brand-bg transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
 
-      <div id="scannedItemsList" class="overflow-y-auto flex-1 space-y-2 pr-1"></div>
+      <div id="scannedItemsList" class="overflow-y-auto flex-1 space-y-3 pr-1 hide-scrollbar"></div>
 
-      <div class="pt-2 flex gap-2">
-        <button onclick="closeScanModal()" id="t_discardBtn" class="w-1/3 bg-zinc-800 hover:bg-zinc-750 text-zinc-300 font-medium py-2.5 rounded-lg text-xs transition">Descartar</button>
-        <button onclick="commitScannedItems()" id="t_confirmBtn" class="w-2/3 bg-emerald-400 hover:bg-emerald-300 text-zinc-950 font-semibold py-2.5 rounded-lg text-xs transition">Confirmar Registro</button>
+      <div class="pt-3 flex gap-3">
+        <button onclick="closeScanModal()" id="t_discardBtn" class="w-1/3 bg-brand-bg text-brand-dark text-sm sm:text-base font-bold py-3 rounded-xl border border-subtle hover:bg-brand-dark/5 transition">Descartar</button>
+        <button onclick="commitScannedItems()" id="t_confirmBtn" class="w-2/3 bg-brand-dark text-white text-sm sm:text-base font-bold py-3 rounded-xl hover:bg-brand-dark/90 transition shadow-md">Confirmar Registro</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: REGISTRO MANUAL -->
-  <div id="manualAddModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-zinc-900 w-full max-w-md rounded-2xl border border-subtle p-6 space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-subtle">
-        <h3 id="t_manTitle" class="text-sm font-semibold text-white">Registro Manual de Insumo</h3>
-        <button onclick="closeManualModal()" class="text-zinc-500 hover:text-white text-sm">✕</button>
+  <div id="manualAddModal" class="fixed inset-0 bg-brand-dark/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-brand-surface w-full max-w-md rounded-2xl border border-subtle p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl max-h-[95vh] overflow-y-auto hide-scrollbar">
+      <div class="flex items-center justify-between pb-3 sm:pb-4 border-b border-subtle">
+        <h3 id="t_manTitle" class="text-base font-bold text-brand-dark">Registro Manual de Insumo</h3>
+        <button onclick="closeManualModal()" class="text-brand-dark/40 hover:text-brand-dark p-2 rounded-lg hover:bg-brand-bg transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
 
-      <form onsubmit="submitManualItem(event)" class="space-y-3 text-xs">
+      <form onsubmit="submitManualItem(event)" class="space-y-4 text-sm font-medium">
         <div>
-          <label id="t_lblItem" class="block text-zinc-400 mb-1">Nome do Insumo</label>
-          <input type="text" id="manualName" required class="w-full bg-zinc-950 border border-subtle rounded-lg px-3 py-2 text-white focus:outline-none focus:border-zinc-700">
+          <label id="t_lblItem" class="block text-brand-dark/70 mb-1.5">Nome do Insumo</label>
+          <input type="text" id="manualName" required class="w-full bg-brand-bg border border-subtle rounded-xl px-4 py-2.5 text-brand-dark focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition">
         </div>
-        <div class="grid grid-cols-2 gap-2">
+        <!-- Grid responsivo: 1 coluna no celular, 2 colunas na web -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label id="t_lblQty" class="block text-zinc-400 mb-1">Quantidade</label>
-            <input type="text" id="manualQuantity" placeholder="ex: 500g, 2 un" required class="w-full bg-zinc-950 border border-subtle rounded-lg px-3 py-2 text-white focus:outline-none focus:border-zinc-700">
+            <label id="t_lblQty" class="block text-brand-dark/70 mb-1.5">Quantidade</label>
+            <input type="text" id="manualQuantity" placeholder="ex: 500g, 2 un" required class="w-full bg-brand-bg border border-subtle rounded-xl px-4 py-2.5 text-brand-dark focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition">
           </div>
           <div>
-            <label id="t_lblDays" class="block text-zinc-400 mb-1">Validade Estimada (Dias)</label>
-            <input type="number" id="manualDays" value="5" min="1" required class="w-full bg-zinc-950 border border-subtle rounded-lg px-3 py-2 text-white focus:outline-none focus:border-zinc-700">
+            <label id="t_lblDays" class="block text-brand-dark/70 mb-1.5">Validade (Dias)</label>
+            <input type="number" id="manualDays" value="5" min="1" required class="w-full bg-brand-bg border border-subtle rounded-xl px-4 py-2.5 text-brand-dark focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition">
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label id="t_lblZone" class="block text-zinc-400 mb-1">Compartimento</label>
-            <select id="manualZone" class="w-full bg-zinc-950 border border-subtle rounded-lg px-3 py-2 text-white focus:outline-none focus:border-zinc-700">
-              <option value="fridge_shelf" id="opt_z_shelf">Prateleira Refrigerada</option>
-              <option value="produce_drawer" id="opt_z_veg">Gaveta de Hortifrúti</option>
+            <label id="t_lblZone" class="block text-brand-dark/70 mb-1.5">Compartimento</label>
+            <select id="manualZone" class="w-full bg-brand-bg border border-subtle rounded-xl px-4 py-2.5 text-brand-dark focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition">
+              <option value="fridge_shelf" id="opt_z_shelf">Prateleira</option>
+              <option value="produce_drawer" id="opt_z_veg">Gaveta (Vegetais)</option>
               <option value="freezer" id="opt_z_freez">Congelador</option>
               <option value="pantry" id="opt_z_pantry">Despensa Seca</option>
             </select>
           </div>
           <div>
-            <label id="t_lblCat" class="block text-zinc-400 mb-1">Categoria</label>
-            <select id="manualCategory" class="w-full bg-zinc-950 border border-subtle rounded-lg px-3 py-2 text-white focus:outline-none focus:border-zinc-700">
-              <option value="produce" id="opt_c_produce">Hortifrúti / Vegetal</option>
-              <option value="protein" id="opt_c_protein">Proteína / Carne</option>
+            <label id="t_lblCat" class="block text-brand-dark/70 mb-1.5">Categoria</label>
+            <select id="manualCategory" class="w-full bg-brand-bg border border-subtle rounded-xl px-4 py-2.5 text-brand-dark focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition">
+              <option value="produce" id="opt_c_produce">Hortifrúti</option>
+              <option value="protein" id="opt_c_protein">Proteína</option>
               <option value="dairy" id="opt_c_dairy">Laticínio</option>
               <option value="grains" id="opt_c_grains">Grãos / Massas</option>
-              <option value="condiments" id="opt_c_cond">Molhos e Condimentos</option>
+              <option value="condiments" id="opt_c_cond">Condimentos</option>
               <option value="other" id="opt_c_other">Outros</option>
             </select>
           </div>
         </div>
-        <div class="pt-2 flex gap-2">
-          <button type="button" onclick="closeManualModal()" id="t_cancelBtn" class="w-1/3 bg-zinc-800 text-zinc-300 py-2.5 rounded-lg">Cancelar</button>
-          <button type="submit" id="t_saveItemBtn" class="w-2/3 bg-emerald-400 text-zinc-950 font-semibold py-2.5 rounded-lg">Salvar Insumo</button>
+        <div class="pt-2 flex gap-3">
+          <button type="button" onclick="closeManualModal()" id="t_cancelBtn" class="w-1/3 bg-brand-bg text-brand-dark font-bold py-3 rounded-xl border border-subtle hover:bg-brand-dark/5 transition">Cancelar</button>
+          <button type="submit" id="t_saveItemBtn" class="w-2/3 bg-brand-dark text-white font-bold py-3 rounded-xl hover:bg-brand-dark/90 transition shadow-md">Salvar</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- MODAL: RECEITA CULINÁRIA -->
-  <div id="recipePlanModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-zinc-900 w-full max-w-2xl rounded-2xl border border-subtle p-6 space-y-5 max-h-[90vh] flex flex-col">
-      <div class="flex items-center justify-between pb-3 border-b border-subtle">
-        <div>
-          <div class="flex items-center gap-2">
-            <span id="planScoreBadge" class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Score 95%</span>
-            <span id="planMeta" class="text-xs text-zinc-400">20 min · Fácil</span>
+  <div id="recipePlanModal" class="fixed inset-0 bg-brand-dark/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-brand-surface w-full max-w-2xl rounded-2xl border border-subtle p-5 sm:p-6 space-y-4 sm:space-y-6 max-h-[90vh] flex flex-col shadow-2xl">
+      <div class="flex items-start sm:items-center justify-between pb-3 sm:pb-4 border-b border-subtle gap-4">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1.5">
+            <span id="planScoreBadge" class="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-brand-accent/20 text-brand-dark border border-brand-accent/40">Score 95%</span>
+            <span id="planMeta" class="text-xs font-semibold text-brand-dark/60">20 min · Fácil</span>
           </div>
-          <h3 id="planTitle" class="text-base font-semibold text-white mt-1">Carregando plano...</h3>
+          <h3 id="planTitle" class="text-lg sm:text-xl font-extrabold text-brand-dark truncate">Carregando plano...</h3>
         </div>
-        <button onclick="closePlanModal()" class="text-zinc-500 hover:text-white text-sm">✕</button>
+        <button onclick="closePlanModal()" class="text-brand-dark/40 hover:text-brand-dark p-2 rounded-lg hover:bg-brand-bg transition flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
 
-      <div id="planContent" class="overflow-y-auto flex-1 space-y-4 text-xs pr-1"></div>
+      <div id="planContent" class="overflow-y-auto flex-1 space-y-5 text-sm pr-1 sm:pr-2 hide-scrollbar"></div>
     </div>
   </div>
 
   <!-- Overlay de Carregamento -->
-  <div id="globalSpinner" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center gap-3">
-    <div class="w-7 h-7 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-    <p id="spinnerText" class="text-xs font-medium text-zinc-300">Executando computação óptica...</p>
+  <div id="globalSpinner" class="fixed inset-0 bg-brand-bg/90 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center gap-4 p-4 text-center">
+    <div class="w-10 h-10 border-4 border-brand-accent border-t-transparent rounded-full animate-spin"></div>
+    <p id="spinnerText" class="text-sm font-bold text-brand-dark tracking-wide">Executando computação óptica...</p>
   </div>
 
   <script>
     const I18N = {
       pt: {
-        subtitle: "Controle de Insumos e Mitigação de Desperdício",
+        subtitle: "Supply & Culinary Intelligence",
         manualBtn: "Manual",
-        scanBtn: "Escanear Insumos",
+        scanBtn: "Escanear",
         mTotal: "Itens Monitorados",
         mWarning: "Expiração Iminente",
         mCritical: "Risco Crítico (48h)",
         mValue: "Valor em Risco",
-        planTitle: "Planejamento Gastronômico de Mitigação",
+        planTitle: "Planejamento Gastronômico",
         planSub: "Gera preparos focados no aproveitamento imediato dos itens críticos.",
         optQuick: "Modo Rápido (≤ 20 min)",
-        optDinner: "Menu Estruturado (Refeição)",
+        optDinner: "Menu Estruturado",
         optPres: "Técnica de Conservação",
         genRecipeBtn: "Gerar Ordem",
         fAll: "Todos",
@@ -243,10 +272,10 @@
         searchPlaceholder: "Buscar insumo...",
         loadingInventory: "Carregando catálogo operacional...",
         emptyInventory: "Nenhum insumo encontrado para a exibição atual.",
-        daysLeft: "d restantes",
+        daysLeft: "d",
         criticalTag: "Crítico",
         warningTag: "Atenção",
-        scanRevTitle: "Revisão de Entrada Óptica",
+        scanRevTitle: "Revisão de Entrada",
         scanRevSub: "Valide as quantidades e categorias antes do registro.",
         discardBtn: "Descartar",
         confirmBtn: "Confirmar Registro",
@@ -266,7 +295,7 @@
         optCProtein: "Proteína / Carne",
         optCDairy: "Laticínio",
         optCGrains: "Grãos / Massas",
-        optCCond: "Molhos e Condimentos",
+        optCCond: "Molhos / Condimentos",
         optCOther: "Outros",
         currency: "R$",
         spinnerTextScan: "Processando visão computacional...",
@@ -274,18 +303,18 @@
         spinnerTextSaving: "Registrando no banco de dados...",
         usedIngredients: "Insumos Utilizados",
         executionSteps: "Instruções de Execução",
-        conservationProtocol: "Protocolo de Conservação / Aproveitamento",
+        conservationProtocol: "Protocolo de Conservação",
         priorityBadge: "Prioritário"
       },
       uy: {
-        subtitle: "Control de Alimentos y Mitigación de Desperdicio",
+        subtitle: "Control de Alimentos y Mitigación",
         manualBtn: "Manual",
-        scanBtn: "Escanear Alimentos",
-        mTotal: "Alimentos en Heladera",
-        mWarning: "Por Vencer Pronto",
-        mCritical: "Riesgo Crítico (48h)",
+        scanBtn: "Escanear",
+        mTotal: "Alimentos",
+        mWarning: "Por Vencer",
+        mCritical: "Riesgo (48h)",
         mValue: "Plata en Riesgo",
-        planTitle: "Plan Gastronómico Anti-Desperdicio",
+        planTitle: "Plan Gastronómico",
         planSub: "Generá recetas enfocadas en aprovechar lo que se te va a vencer.",
         optQuick: "Al Toque (≤ 20 min)",
         optDinner: "Plato Fuerte / Cena",
@@ -293,15 +322,15 @@
         genRecipeBtn: "Generar Receta",
         fAll: "Todos",
         fCrit: "Críticos",
-        fVeg: "Cajón de Verduras",
+        fVeg: "Cajón Verduras",
         fShelf: "Estantes",
         searchPlaceholder: "Buscar alimento...",
         loadingInventory: "Cargando inventario...",
         emptyInventory: "No tenés alimentos registrados en esta sección.",
-        daysLeft: "d restantes",
+        daysLeft: "d",
         criticalTag: "¡Urgente!",
         warningTag: "Atención",
-        scanRevTitle: "Revisión de Detección Óptica",
+        scanRevTitle: "Revisión de Detección",
         scanRevSub: "Verificá cantidades y nombres antes de guardar.",
         discardBtn: "Descartar",
         confirmBtn: "Confirmar y Guardar",
@@ -329,7 +358,7 @@
         spinnerTextSaving: "Guardando en el inventario...",
         usedIngredients: "Ingredientes que Usás",
         executionSteps: "Paso a Paso",
-        conservationProtocol: "Pique del Chef para Conservar",
+        conservationProtocol: "Pique del Chef",
         priorityBadge: "¡A Usar Ya!"
       }
     };
@@ -355,10 +384,13 @@
       document.getElementById('t_subtitle').innerText = t.subtitle;
       document.getElementById('t_manualBtn').innerText = t.manualBtn;
       document.getElementById('t_scanBtn').innerText = t.scanBtn;
-      document.getElementById('t_mTotal').innerText = t.mTotal;
-      document.getElementById('t_mWarning').innerText = t.mWarning;
-      document.getElementById('t_mCritical').innerText = t.mCritical;
-      document.getElementById('t_mValue').innerText = t.mValue;
+      
+      // Metricas abreviadas por css nas classes, usamos o i18n
+      document.getElementById('t_mTotal').innerText = currentLang === 'pt' ? 'Itens' : 'Alimentos';
+      document.getElementById('t_mWarning').innerText = currentLang === 'pt' ? 'Iminente' : 'Por Vencer';
+      document.getElementById('t_mCritical').innerText = currentLang === 'pt' ? 'Risco (48h)' : 'Riesgo (48h)';
+      document.getElementById('t_mValue').innerText = currentLang === 'pt' ? 'Em Risco' : 'Plata Riesgo';
+
       document.getElementById('t_planTitle').innerText = t.planTitle;
       document.getElementById('t_planSub').innerText = t.planSub;
       document.getElementById('opt_quick').innerText = t.optQuick;
@@ -382,7 +414,7 @@
       document.getElementById('t_lblZone').innerText = t.lblZone;
       document.getElementById('t_lblCat').innerText = t.lblCat;
       document.getElementById('t_cancelBtn').innerText = t.cancelBtn;
-      document.getElementById('t_saveItemBtn').innerText = t.saveItemBtn;
+      document.getElementById('t_saveItemBtn').innerText = currentLang === 'pt' ? 'Salvar' : 'Guardar';
 
       document.getElementById('opt_z_shelf').innerText = t.optZShelf;
       document.getElementById('opt_z_veg').innerText = t.optZVeg;
@@ -400,8 +432,6 @@
       document.getElementById('imageScanInput').click();
     }
 
-    // --- FUNÇÃO DE REDIMENSIONAMENTO E COMPRESSÃO NO NAVEGADOR ---
-    // Resolve o limite de 4.5MB da Vercel para câmeras Samsung/iPhone
     function compressImage(file, maxDimension = 1280, quality = 0.8) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -412,35 +442,18 @@
           img.onload = () => {
             let width = img.width;
             let height = img.height;
-
             if (width > height) {
-              if (width > maxDimension) {
-                height = Math.round((height * maxDimension) / width);
-                width = maxDimension;
-              }
+              if (width > maxDimension) { height = Math.round((height * maxDimension) / width); width = maxDimension; }
             } else {
-              if (height > maxDimension) {
-                width = Math.round((width * maxDimension) / height);
-                height = maxDimension;
-              }
+              if (height > maxDimension) { width = Math.round((width * maxDimension) / height); height = maxDimension; }
             }
-
             const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = width; canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-
             canvas.toBlob(
-              (blob) => {
-                if (blob) {
-                  resolve(new File([blob], "fridge_scan.jpg", { type: "image/jpeg" }));
-                } else {
-                  reject(new Error("Falha ao comprimir imagem"));
-                }
-              },
-              "image/jpeg",
-              quality
+              (blob) => { blob ? resolve(new File([blob], "fridge_scan.jpg", { type: "image/jpeg" })) : reject(new Error("Falha")); },
+              "image/jpeg", quality
             );
           };
           img.onerror = (err) => reject(err);
@@ -452,13 +465,9 @@
     async function processImageScan(input) {
       if (!input.files || !input.files[0]) return;
       const rawFile = input.files[0];
-
       showLoading(I18N[currentLang].spinnerTextScan);
-
       try {
-        // Comprime antes de enviar
         const compressedFile = await compressImage(rawFile);
-
         const form = new FormData();
         form.append('file', compressedFile);
 
@@ -482,21 +491,22 @@
     function renderScanReview(items) {
       const list = document.getElementById('scannedItemsList');
       list.innerHTML = '';
-
       if (!items || items.length === 0) {
-        list.innerHTML = `<p class="text-center text-zinc-500 text-xs py-8">${currentLang === 'uy' ? 'No se detectó ningún alimento con nitidez.' : 'Nenhum alimento identificado com nitidez.'}</p>`;
+        list.innerHTML = `<p class="text-center text-brand-dark/50 text-sm font-medium py-8">${currentLang === 'uy' ? 'No se detectó ningún alimento con nitidez.' : 'Nenhum alimento identificado com nitidez.'}</p>`;
       } else {
         items.forEach((item, idx) => {
           list.innerHTML += `
-            <div class="flex items-center justify-between p-3 rounded-lg bg-zinc-950 border border-subtle">
-              <div class="flex-1 pr-3">
-                <input type="text" value="${item.name}" onchange="stagedItems[${idx}].name = this.value" class="bg-transparent text-xs font-semibold text-white focus:outline-none w-full border-b border-transparent focus:border-zinc-700">
-                <div class="flex items-center gap-2 mt-1">
-                  <input type="text" value="${item.quantity_approx}" onchange="stagedItems[${idx}].quantity_approx = this.value" class="bg-transparent text-[11px] text-zinc-400 focus:outline-none w-20">
-                  <span class="text-[10px] text-zinc-500">${item.shelf_life_days} ${I18N[currentLang].daysLeft}</span>
+            <div class="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-brand-bg border border-subtle gap-2">
+              <div class="flex-1 min-w-0 space-y-1">
+                <input type="text" value="${item.name}" onchange="stagedItems[${idx}].name = this.value" class="bg-transparent text-sm font-bold text-brand-dark focus:outline-none w-full border-b border-transparent focus:border-brand-accent transition truncate">
+                <div class="flex items-center gap-2">
+                  <input type="text" value="${item.quantity_approx}" onchange="stagedItems[${idx}].quantity_approx = this.value" class="bg-transparent text-xs font-semibold text-brand-dark/60 focus:outline-none w-16 sm:w-20 border-b border-transparent focus:border-brand-accent truncate">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-brand-dark/40 flex-shrink-0">${item.shelf_life_days}${I18N[currentLang].daysLeft}</span>
                 </div>
               </div>
-              <button onclick="dropStagedItem(${idx})" class="text-zinc-600 hover:text-rose-400 text-xs p-1">✕</button>
+              <button onclick="dropStagedItem(${idx})" class="text-brand-dark/40 hover:text-rose-500 p-2 rounded-lg hover:bg-brand-surface transition shadow-sm bg-brand-surface border border-subtle flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
             </div>
           `;
         });
@@ -516,31 +526,20 @@
 
     async function commitScannedItems() {
       if (stagedItems.length === 0) return closeScanModal();
-
       showLoading(I18N[currentLang].spinnerTextSaving);
       try {
         const res = await fetch('/api/inventory/batch-add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: stagedItems })
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: stagedItems })
         });
         if (!res.ok) throw new Error("Erro ao salvar itens");
         closeScanModal();
         hideLoading();
         await loadInventory();
-      } catch (e) {
-        hideLoading();
-        alert("Erro: " + e.message);
-      }
+      } catch (e) { hideLoading(); alert("Erro: " + e.message); }
     }
 
-    function openManualModal() {
-      document.getElementById('manualAddModal').classList.remove('hidden');
-    }
-
-    function closeManualModal() {
-      document.getElementById('manualAddModal').classList.add('hidden');
-    }
+    function openManualModal() { document.getElementById('manualAddModal').classList.remove('hidden'); }
+    function closeManualModal() { document.getElementById('manualAddModal').classList.add('hidden'); }
 
     async function submitManualItem(e) {
       e.preventDefault();
@@ -551,23 +550,14 @@
         zone: document.getElementById('manualZone').value,
         category: document.getElementById('manualCategory').value
       };
-
       showLoading(I18N[currentLang].spinnerTextSaving);
       try {
         const res = await fetch('/api/inventory/manual', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
         });
         if (!res.ok) throw new Error("Erro ao salvar item");
-        closeManualModal();
-        e.target.reset();
-        hideLoading();
-        await loadInventory();
-      } catch (err) {
-        hideLoading();
-        alert("Erro: " + err.message);
-      }
+        closeManualModal(); e.target.reset(); hideLoading(); await loadInventory();
+      } catch (err) { hideLoading(); alert("Erro: " + err.message); }
     }
 
     async function loadInventory() {
@@ -576,24 +566,19 @@
         if (!res.ok) throw new Error("Falha ao obter inventário");
         const data = await res.json();
         fullInventory = data.inventory || [];
-
         const t = I18N[currentLang];
         document.getElementById('metricTotal').innerText = data.metrics.total_items;
         document.getElementById('metricWarning').innerText = data.metrics.warning_count;
         document.getElementById('metricCritical').innerText = data.metrics.critical_count;
         document.getElementById('metricValue').innerText = `${t.currency} ${data.metrics.potential_waste_value.toFixed(2)}`;
-
         renderInventoryList();
-      } catch (err) {
-        console.error("Erro no loadInventory:", err);
-      }
+      } catch (err) { console.error("Erro no loadInventory:", err); }
     }
 
     function renderInventoryList() {
       const container = document.getElementById('inventoryContainer');
       container.innerHTML = '';
       const t = I18N[currentLang];
-
       const search = document.getElementById('searchInput').value.toLowerCase();
       
       const filtered = fullInventory.filter(item => {
@@ -607,7 +592,7 @@
 
       if (filtered.length === 0) {
         container.innerHTML = `
-          <div class="p-8 text-center rounded-xl border border-dashed border-subtle text-zinc-500 text-xs">
+          <div class="p-10 text-center rounded-2xl border-2 border-dashed border-subtle bg-brand-surface text-brand-dark/50 text-sm font-semibold">
             ${t.emptyInventory}
           </div>
         `;
@@ -615,29 +600,30 @@
       }
 
       filtered.forEach(item => {
-        let statusTag = `<span class="text-[10px] font-medium px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-subtle">${item.days_left}${t.daysLeft}</span>`;
-        let rowBorder = "border-subtle";
+        let statusTag = `<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-brand-bg text-brand-dark/60 border border-subtle whitespace-nowrap">${item.days_left}${t.daysLeft}</span>`;
+        let rowClasses = "bg-brand-surface border-subtle";
 
         if (item.status === 'critical') {
-          statusTag = `<span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-900/60">${t.criticalTag} (${item.days_left}d)</span>`;
-          rowBorder = "border-rose-900/40 bg-rose-950/5";
+          statusTag = `<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-rose-50 text-rose-600 border border-rose-200 whitespace-nowrap">${t.criticalTag} (${item.days_left}d)</span>`;
+          rowClasses = "bg-rose-50/50 border-rose-100";
         } else if (item.status === 'warning') {
-          statusTag = `<span class="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-900/60">${t.warningTag} (${item.days_left}d)</span>`;
+          statusTag = `<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-amber-50 text-amber-600 border border-amber-200 whitespace-nowrap">${t.warningTag} (${item.days_left}d)</span>`;
         }
 
+        /* Flexbox seguro contra estouro de layout em telas pequenas */
         container.innerHTML += `
-          <div class="flex items-center justify-between p-3.5 rounded-xl bg-zinc-900 border ${rowBorder} hover:border-zinc-700 transition">
-            <div class="space-y-0.5">
-              <div class="flex items-center gap-2">
-                <h4 class="text-xs font-semibold text-zinc-100">${item.name}</h4>
-                <span class="text-[10px] text-zinc-500 uppercase tracking-wider">${item.zone.replace('_', ' ')}</span>
+          <div class="flex items-center justify-between gap-2 sm:gap-4 p-3.5 sm:p-4 rounded-xl border ${rowClasses} hover:border-brand-dark/20 transition shadow-sm">
+            <div class="space-y-1 sm:space-y-1.5 min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="text-sm font-extrabold text-brand-dark truncate max-w-[130px] sm:max-w-xs">${item.name}</h4>
+                <span class="text-[9px] font-bold text-brand-dark/60 uppercase tracking-widest bg-brand-bg px-2 py-0.5 rounded-full border border-subtle whitespace-nowrap hidden sm:inline-block">${item.zone.replace('_', ' ')}</span>
               </div>
-              <p class="text-[11px] text-zinc-400">${item.quantity} · <span class="capitalize text-zinc-500">${item.category}</span></p>
+              <p class="text-[11px] sm:text-xs font-semibold text-brand-dark/50 truncate">${item.quantity} · <span class="capitalize">${item.category}</span></p>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2.5 sm:gap-4 flex-shrink-0">
               ${statusTag}
-              <button onclick="consumeItem(${item.id})" title="Registrar Consumo" class="h-7 w-7 rounded-lg bg-zinc-800 hover:bg-emerald-950 hover:text-emerald-400 hover:border-emerald-800 border border-subtle text-zinc-400 flex items-center justify-center text-xs transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <button onclick="consumeItem(${item.id})" title="Registrar Consumo" class="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-brand-surface hover:bg-brand-accent hover:text-brand-dark border border-subtle text-brand-dark/40 flex items-center justify-center transition shadow-sm flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
               </button>
             </div>
           </div>
@@ -649,17 +635,15 @@
       currentFilter = f;
       document.querySelectorAll('.filter-tab').forEach(b => {
         if (b.dataset.filter === f) {
-          b.className = "filter-tab px-3 py-1.5 rounded-lg bg-zinc-800 text-white font-medium border border-subtle";
+          b.className = "filter-tab whitespace-nowrap px-4 py-2.5 sm:py-2 rounded-lg bg-brand-dark text-white font-semibold shadow-md transition flex-shrink-0";
         } else {
-          b.className = "filter-tab px-3 py-1.5 rounded-lg text-zinc-400 font-medium hover:text-white";
+          b.className = "filter-tab whitespace-nowrap px-4 py-2.5 sm:py-2 rounded-lg text-brand-dark/60 font-semibold hover:bg-brand-surface border border-transparent hover:border-subtle transition flex-shrink-0";
         }
       });
       renderInventoryList();
     }
 
-    function handleSearch() {
-      renderInventoryList();
-    }
+    function handleSearch() { renderInventoryList(); }
 
     async function consumeItem(id) {
       await fetch(`/api/inventory/${id}`, { method: 'DELETE' });
@@ -672,9 +656,7 @@
       showLoading(t.spinnerTextRecipe);
       try {
         const res = await fetch('/api/generate-recipe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode, lang: currentLang })
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode, lang: currentLang })
         });
         if (!res.ok) throw new Error("Falha na geração da receita");
         const plan = await res.json();
@@ -684,56 +666,44 @@
         document.getElementById('planScoreBadge').innerText = `${currentLang === 'uy' ? 'Eficiencia' : 'Eficiência'}: ${plan.waste_reduction_score}%`;
 
         let ingList = plan.ingredients.map(i => `
-          <li class="flex items-center justify-between py-1 border-b border-subtle text-zinc-300">
-            <span>${i.name} (${i.quantity})</span>
-            ${i.is_urgent_item ? `<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-900/60">${t.priorityBadge}</span>` : ''}
+          <li class="flex items-center justify-between py-2 border-b border-subtle text-brand-dark font-medium">
+            <span class="truncate pr-2">${i.name} <span class="text-brand-dark/50">(${i.quantity})</span></span>
+            ${i.is_urgent_item ? `<span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 border border-rose-200 flex-shrink-0">${t.priorityBadge}</span>` : ''}
           </li>
         `).join('');
 
         let stepsList = plan.execution_steps.map((s, idx) => `
-          <div class="space-y-0.5">
-            <p class="font-semibold text-zinc-200">${idx + 1}. ${s.stage_name} <span class="text-zinc-500 font-normal">(${s.estimated_time_minutes} min)</span></p>
-            <p class="text-zinc-400 pl-3 border-l border-zinc-700 leading-relaxed">${s.action}</p>
+          <div class="space-y-1.5">
+            <p class="font-extrabold text-brand-dark">${idx + 1}. ${s.stage_name} <span class="text-brand-dark/50 font-semibold text-xs ml-1 whitespace-nowrap">(${s.estimated_time_minutes} min)</span></p>
+            <p class="text-brand-dark/70 font-medium pl-4 border-l-2 border-brand-accent/60 leading-relaxed">${s.action}</p>
           </div>
         `).join('');
 
         document.getElementById('planContent').innerHTML = `
-          <div class="space-y-2">
-            <h5 class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">${t.usedIngredients}</h5>
-            <ul class="space-y-0.5">${ingList}</ul>
+          <div class="space-y-2 sm:space-y-3">
+            <h5 class="text-[11px] font-bold uppercase tracking-widest text-brand-dark/50">${t.usedIngredients}</h5>
+            <ul class="space-y-1">${ingList}</ul>
           </div>
 
-          <div class="space-y-3 pt-2">
-            <h5 class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">${t.executionSteps}</h5>
-            <div class="space-y-2.5">${stepsList}</div>
+          <div class="space-y-3 sm:space-y-4 pt-4">
+            <h5 class="text-[11px] font-bold uppercase tracking-widest text-brand-dark/50">${t.executionSteps}</h5>
+            <div class="space-y-4 sm:space-y-5">${stepsList}</div>
           </div>
 
-          <div class="p-3 rounded-lg bg-zinc-950 border border-subtle space-y-1">
-            <h5 class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">${t.conservationProtocol}</h5>
-            <p class="text-zinc-400 text-xs">${plan.conservation_guide}</p>
+          <div class="p-4 sm:p-5 rounded-xl bg-brand-bg border border-subtle space-y-2 mt-4 shadow-inner">
+            <h5 class="text-[11px] font-bold uppercase tracking-widest text-brand-accent">${t.conservationProtocol}</h5>
+            <p class="text-brand-dark/80 font-medium text-xs sm:text-sm leading-relaxed">${plan.conservation_guide}</p>
           </div>
         `;
 
         hideLoading();
         document.getElementById('recipePlanModal').classList.remove('hidden');
-      } catch (e) {
-        hideLoading();
-        alert("Erro: " + e.message);
-      }
+      } catch (e) { hideLoading(); alert("Erro: " + e.message); }
     }
 
-    function closePlanModal() {
-      document.getElementById('recipePlanModal').classList.add('hidden');
-    }
-
-    function showLoading(msg) {
-      document.getElementById('spinnerText').innerText = msg;
-      document.getElementById('globalSpinner').classList.remove('hidden');
-    }
-
-    function hideLoading() {
-      document.getElementById('globalSpinner').classList.add('hidden');
-    }
+    function closePlanModal() { document.getElementById('recipePlanModal').classList.add('hidden'); }
+    function showLoading(msg) { document.getElementById('spinnerText').innerText = msg; document.getElementById('globalSpinner').classList.remove('hidden'); }
+    function hideLoading() { document.getElementById('globalSpinner').classList.add('hidden'); }
 
     applyLanguage();
     loadInventory();
