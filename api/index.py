@@ -20,7 +20,7 @@ if API_KEY:
     except Exception:
         pass
 
-MODELS_TO_TRY = ["gemini-3.6-flash", "gemini-3.1-pro-preview"]
+MODELS_TO_TRY = ["gemini-3.8-flash", "gemini-3.6-flash"]
 
 app = FastAPI(title="PantryOS Engine")
 
